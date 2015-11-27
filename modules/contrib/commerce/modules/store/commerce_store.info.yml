@@ -1,0 +1,15 @@
+name: Commerce Store
+type: module
+description: 'Defines the Store entity and associated features.'
+package: Commerce
+core: 8.x
+dependencies:
+  - address
+  - commerce
+  - commerce_price
+  - entity_reference
+  - options
+config_devel:
+  - commerce_store.commerce_store_type.default
+  - commerce_store.settings
+  - views.view.commerce_stores
