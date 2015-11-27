@@ -1,0 +1,12 @@
+uuid: d944e773-4675-4b4e-9851-811035eaf1b0
+name: 'Free Commerce'
+mail: tom@tomfallon.co.uk
+slogan: ''
+page:
+  403: ''
+  404: ''
+  front: /node
+admin_compact_mode: false
+weight_select_max: 100
+langcode: en
+default_langcode: en
