@@ -1,0 +1,23 @@
+uuid: dee2d94f-6e65-47d4-9559-892ef3ba37bf
+langcode: en
+status: true
+dependencies: {  }
+countryCode: KI
+format: "%recipient\n%organization\n%addressLine1\n%addressLine2\n%administrativeArea\n%locality"
+requiredFields:
+  - recipient
+  - addressLine1
+  - locality
+uppercaseFields:
+  - addressLine1
+  - addressLine2
+  - locality
+  - recipient
+  - organization
+  - administrativeArea
+administrativeAreaType: island
+localityType: city
+dependentLocalityType: null
+postalCodeType: null
+postalCodePattern: null
+postalCodePrefix: null

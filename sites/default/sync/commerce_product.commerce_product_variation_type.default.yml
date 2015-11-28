@@ -1,0 +1,7 @@
+uuid: 555d0507-a543-4ae2-b503-3ca1839e011b
+langcode: en
+status: true
+dependencies: {  }
+id: default
+label: Default
+lineItemType: product_variation

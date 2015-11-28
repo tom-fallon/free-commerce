@@ -1,0 +1,21 @@
+uuid: f0b851c8-04e2-4c42-8b00-da8fd4675aa1
+langcode: en
+status: true
+dependencies:
+  module:
+    - commerce_payment
+id: commerce_payment_info.card_name
+field_name: card_name
+entity_type: commerce_payment_info
+type: string
+settings:
+  max_length: 255
+  is_ascii: false
+  case_sensitive: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

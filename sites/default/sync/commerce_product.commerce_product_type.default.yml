@@ -1,0 +1,9 @@
+uuid: 59d230a1-e688-4c95-8700-e519c6169c3f
+langcode: en
+status: true
+dependencies: {  }
+id: default
+label: Default
+digital: false
+description: ''
+variationType: default

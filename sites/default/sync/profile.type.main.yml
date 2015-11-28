@@ -1,0 +1,9 @@
+uuid: 0e55897d-47d4-4497-a148-7266e4d9b686
+langcode: en
+status: true
+dependencies: {  }
+id: main
+label: 'Personal information'
+registration: false
+multiple: false
+weight: 0

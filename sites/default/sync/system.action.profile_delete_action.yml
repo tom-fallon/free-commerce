@@ -1,0 +1,11 @@
+uuid: 3fe3fcb2-d222-44bc-9c38-562fccd44317
+langcode: en
+status: true
+dependencies:
+  module:
+    - profile
+id: profile_delete_action
+label: 'Delete selected profile'
+type: profile
+plugin: profile_delete_action
+configuration: {  }

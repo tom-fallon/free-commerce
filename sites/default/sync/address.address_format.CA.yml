@@ -1,0 +1,26 @@
+uuid: 20f78a24-84ba-44d5-8204-4f8750105ded
+langcode: en
+status: true
+dependencies: {  }
+countryCode: CA
+format: "%recipient\n%organization\n%addressLine1\n%addressLine2\n%locality %administrativeArea %postalCode"
+requiredFields:
+  - recipient
+  - addressLine1
+  - locality
+  - administrativeArea
+  - postalCode
+uppercaseFields:
+  - addressLine1
+  - addressLine2
+  - locality
+  - recipient
+  - organization
+  - administrativeArea
+  - postalCode
+administrativeAreaType: province
+localityType: city
+dependentLocalityType: null
+postalCodeType: postal
+postalCodePattern: '[ABCEGHJKLMNPRSTVXY]\d[ABCEGHJ-NPRSTV-Z][ ]?\d[ABCEGHJ-NPRSTV-Z]\d'
+postalCodePrefix: null

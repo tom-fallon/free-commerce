@@ -1,0 +1,20 @@
+uuid: a1fa2ce7-3072-4605-be08-8ace0b55ee35
+langcode: en
+status: true
+dependencies:
+  module:
+    - commerce_payment
+id: commerce_payment_info.card_exp_year
+field_name: card_exp_year
+entity_type: commerce_payment_info
+type: integer
+settings:
+  unsigned: ''
+  size: normal
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

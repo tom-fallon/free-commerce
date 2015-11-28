@@ -1,0 +1,11 @@
+uuid: f7c0ca57-0bdf-4c20-b700-f6b23652de62
+langcode: en
+status: true
+dependencies:
+  module:
+    - profile
+id: profile_publish_action
+label: 'Publish selected profile'
+type: profile
+plugin: profile_publish_action
+configuration: {  }

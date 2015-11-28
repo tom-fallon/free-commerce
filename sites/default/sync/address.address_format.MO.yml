@@ -1,0 +1,17 @@
+uuid: 7d26b332-8af3-4ecf-bf00-f0db8b8bb45d
+langcode: en
+status: true
+dependencies: {  }
+countryCode: MO
+format: "%recipient\n%organization\n%addressLine1\n%addressLine2"
+requiredFields:
+  - recipient
+  - addressLine1
+uppercaseFields:
+  - locality
+administrativeAreaType: null
+localityType: null
+dependentLocalityType: null
+postalCodeType: null
+postalCodePattern: null
+postalCodePrefix: null

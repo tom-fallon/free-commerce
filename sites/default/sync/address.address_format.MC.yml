@@ -1,0 +1,18 @@
+uuid: f6525b5d-9e13-4c69-8d00-0005db31824d
+langcode: en
+status: true
+dependencies: {  }
+countryCode: MC
+format: "%recipient\n%organization\n%addressLine1\n%addressLine2\n%postalCode %locality %sortingCode"
+requiredFields:
+  - recipient
+  - addressLine1
+  - locality
+uppercaseFields:
+  - locality
+administrativeAreaType: null
+localityType: city
+dependentLocalityType: null
+postalCodeType: postal
+postalCodePattern: '980\d{2}'
+postalCodePrefix: MC-

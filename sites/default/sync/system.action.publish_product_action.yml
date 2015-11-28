@@ -1,0 +1,11 @@
+uuid: 0a6435bb-602e-4e1a-b90f-151e0fdc21d5
+langcode: en
+status: true
+dependencies:
+  module:
+    - commerce_product
+id: publish_product_action
+label: 'Publish product'
+type: commerce_product
+plugin: publish_product_action
+configuration: {  }
