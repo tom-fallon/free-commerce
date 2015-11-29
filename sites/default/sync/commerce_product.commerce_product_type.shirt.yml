@@ -1,9 +1,9 @@
-uuid: 59d230a1-e688-4c95-8700-e519c6169c3f
+uuid: d509940a-58f8-4b2b-b200-0ceec581dad2
 langcode: en
 status: true
 dependencies: {  }
-id: default
-label: Default
+id: shirt
+label: Shirt
 digital: false
 description: ''
 variationType: colour

@@ -1,0 +1,7 @@
+uuid: b0d35b17-367b-4d9e-a615-21ef6b63f167
+langcode: en
+status: true
+dependencies: {  }
+id: weight
+label: Weight
+lineItemType: product_variation

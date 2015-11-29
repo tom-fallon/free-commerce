@@ -1,0 +1,24 @@
+uuid: 029882e4-2133-4ae5-863f-63e2d556f361
+langcode: en
+status: true
+dependencies:
+  config:
+    - commerce_product.commerce_product_type.shirt
+    - field.field.commerce_product.shirt.body
+    - field.field.commerce_product.shirt.stores
+  module:
+    - text
+    - user
+id: commerce_product.shirt.default
+targetEntityType: commerce_product
+bundle: shirt
+mode: default
+content:
+  body:
+    label: hidden
+    type: text_default
+    weight: 1
+    settings: {  }
+    third_party_settings: {  }
+hidden:
+  stores: true

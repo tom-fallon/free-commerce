@@ -1,0 +1,7 @@
+uuid: b7da7e55-c178-4723-a200-c95cb8eb2126
+langcode: en
+status: true
+dependencies: {  }
+id: colour
+label: Colour
+lineItemType: product_variation

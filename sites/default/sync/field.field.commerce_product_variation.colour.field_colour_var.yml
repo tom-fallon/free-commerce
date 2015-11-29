@@ -1,0 +1,21 @@
+uuid: 96e773fa-ea37-4723-bc09-9d33c7b5c1b0
+langcode: en
+status: true
+dependencies:
+  config:
+    - commerce_product.commerce_product_variation_type.colour
+    - field.storage.commerce_product_variation.field_colour_var
+  module:
+    - options
+id: commerce_product_variation.colour.field_colour_var
+field_name: field_colour_var
+entity_type: commerce_product_variation
+bundle: colour
+label: Colour
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string
