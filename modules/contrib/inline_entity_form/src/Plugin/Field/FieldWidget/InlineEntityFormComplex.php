@@ -102,20 +102,20 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
     $states_prefix = 'fields[' . $this->fieldDefinition->getName() . '][settings_edit_form][settings]';
     $element['allow_new'] = [
       '#type' => 'checkbox',
-      '#title' => t('Allow users to add new @label.', array('@label' => $labels['plural'])),
+      '#title' => $this->t('Allow users to add new @label.', array('@label' => $labels['plural'])),
       '#default_value' => $this->getSetting('allow_new'),
     ];
     $element['allow_existing'] = [
       '#type' => 'checkbox',
-      '#title' => t('Allow users to add existing @label.', ['@label' => $labels['plural']]),
+      '#title' => $this->t('Allow users to add existing @label.', ['@label' => $labels['plural']]),
       '#default_value' => $this->getSetting('allow_existing'),
     ];
     $element['match_operator'] = [
       '#type' => 'select',
-      '#title' => t('Autocomplete matching'),
+      '#title' => $this->t('Autocomplete matching'),
       '#default_value' => $this->getSetting('match_operator'),
       '#options' => $this->getMatchOperatorOptions(),
-      '#description' => t('Select the method used to collect autocomplete suggestions. Note that <em>Contains</em> can cause performance issues on sites with thousands of nodes.'),
+      '#description' => $this->t('Select the method used to collect autocomplete suggestions. Note that <em>Contains</em> can cause performance issues on sites with thousands of nodes.'),
       '#states' => [
         'visible' => [
           ':input[name="' . $states_prefix . '[allow_existing]"]' => array('checked' => TRUE),
@@ -134,21 +134,21 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
     $labels = $this->labels();
 
     if ($this->getSetting('allow_new')) {
-      $summary[] = t('New @label can be added.', ['@label' => $labels['plural']]);
+      $summary[] = $this->t('New @label can be added.', ['@label' => $labels['plural']]);
     }
     else {
-      $summary[] = t('New @label can not be created.', ['@label' => $labels['plural']]);
+      $summary[] = $this->t('New @label can not be created.', ['@label' => $labels['plural']]);
     }
 
     $match_operator_options = $this->getMatchOperatorOptions();
     if ($this->getSetting('allow_existing')) {
-      $summary[] = t('Existing @label can be referenced and are matched with the %operator operator.', [
+      $summary[] = $this->t('Existing @label can be referenced and are matched with the %operator operator.', [
         '@label' => $labels['plural'],
         '%operator' => $match_operator_options[$this->getSetting('match_operator')],
       ]);
     }
     else {
-      $summary[] = t('Existing @label can not be referenced.', ['@label' => $labels['plural']]);
+      $summary[] = $this->t('Existing @label can not be referenced.', ['@label' => $labels['plural']]);
     }
 
     return $summary;
@@ -162,8 +162,8 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
    */
   protected function getMatchOperatorOptions() {
     return [
-      'STARTS_WITH' => t('Starts with'),
-      'CONTAINS' => t('Contains'),
+      'STARTS_WITH' => $this->t('Starts with'),
+      'CONTAINS' => $this->t('Contains'),
     ];
   }
 
@@ -288,7 +288,6 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
       /** @var \Drupal\Core\Entity\EntityInterface $entity */
       $entity = $value['entity'];
       $element['entities'][$key]['#entity'] = $value['entity'];
-      $element['entities'][$key]['#item'] = $items->offsetGet($key);
       $element['entities'][$key]['#needs_save'] = $value['needs_save'];
 
       // Handle row weights.
@@ -309,7 +308,6 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
             '#attributes' => ['class' => ['ief-form', 'ief-form-row']],
             'inline_entity_form' => $this->getInlineEntityForm(
               $value['form'],
-              $target_type,
               $parent_langcode,
               $key,
               array_merge($parents,  ['inline_entity_form', 'entities', $key, 'form']),
@@ -361,7 +359,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
         if (empty($entity_id) || $entity->access('update')) {
           $row['actions']['ief_entity_edit'] = array(
             '#type' => 'submit',
-            '#value' => t('Edit'),
+            '#value' => $this->t('Edit'),
             '#name' => 'ief-' . $this->getIefId() . '-entity-edit-' . $key,
             '#limit_validation_errors' => array(),
             '#ajax' => array(
@@ -380,7 +378,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
         if (empty($entity_id) || $settings['allow_existing'] || $entity->access('delete')) {
           $row['actions']['ief_entity_remove'] = array(
             '#type' => 'submit',
-            '#value' => t('Remove'),
+            '#value' => $this->t('Remove'),
             '#name' => 'ief-' . $this->getIefId() . '-entity-remove-' . $key,
             '#limit_validation_errors' => array(),
             '#ajax' => array(
@@ -399,7 +397,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
     $cardinality = $this->fieldDefinition->getFieldStorageDefinition()->getCardinality();
     if ($cardinality > 1) {
       // Add a visual cue of cardinality count.
-      $message = t('You have added @entities_count out of @cardinality_count allowed @label.', array(
+      $message = $this->t('You have added @entities_count out of @cardinality_count allowed @label.', array(
         '@entities_count' => $entities_count,
         '@cardinality_count' => $cardinality,
         '@label' => $labels['plural'],
@@ -474,7 +472,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
 
         $element['actions']['ief_add'] = array(
           '#type' => 'submit',
-          '#value' => t('Add new @type_singular', array('@type_singular' => $labels['singular'])),
+          '#value' => $this->t('Add new @type_singular', array('@type_singular' => $labels['singular'])),
           '#name' => 'ief-' . $this->getIefId() . '-add',
           '#limit_validation_errors' => array(array_merge($parents, array('actions'))),
           '#ajax' => array(
@@ -489,7 +487,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
       if ($settings['allow_existing']) {
         $element['actions']['ief_add_existing'] = array(
           '#type' => 'submit',
-          '#value' => t('Add existing @type_singular', array('@type_singular' => $labels['singular'])),
+          '#value' => $this->t('Add existing @type_singular', array('@type_singular' => $labels['singular'])),
           '#name' => 'ief-' . $this->getIefId() . '-add-existing',
           '#limit_validation_errors' => array(array_merge($parents, array('actions'))),
           '#ajax' => array(
@@ -509,7 +507,6 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
           '#attributes' => ['class' => ['ief-form', 'ief-form-bottom']],
           'inline_entity_form' => $this->getInlineEntityForm(
             'add',
-            $target_type,
             $parent_langcode,
             NULL,
             array_merge($parents, ['inline_entity_form']),
@@ -575,10 +572,14 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
       return;
     }
 
+    if (!$this->isSubmitRelevant($form, $form_state)) {
+      return;
+    }
+
     $field_name = $this->fieldDefinition->getName();
 
     // Extract the values from $form_state->getValues().
-    $parents = array_merge($form['#parents'], array($field_name, 'form'));
+    $parents = array_merge($form['#parents'], [$field_name, 'form']);
     $ief_id = sha1(implode('-', $parents));
     $this->setIefId($ief_id);
 
@@ -772,10 +773,10 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
     $labels = $this->labels();
 
     if ($entity_label) {
-      $message = t('Are you sure you want to remove %label?', ['%label' => $entity_label]);
+      $message = $this->t('Are you sure you want to remove %label?', ['%label' => $entity_label]);
     }
     else {
-      $message = t('Are you sure you want to remove this %entity_type?', ['%entity_type' => $labels['singular']]);
+      $message = $this->t('Are you sure you want to remove this %entity_type?', ['%entity_type' => $labels['singular']]);
     }
 
     $form['message'] = [
@@ -786,7 +787,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
     if (!empty($entity_id) && $this->getSetting('allow_existing') && $entity->access('delete')) {
       $form['delete'] = [
         '#type' => 'checkbox',
-        '#title' => t('Delete this @type_singular from the system.', array('@type_singular' => $labels['singular'])),
+        '#title' => $this->t('Delete this @type_singular from the system.', array('@type_singular' => $labels['singular'])),
       ];
     }
 
@@ -800,7 +801,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
     ];
     $form['actions']['ief_remove_confirm'] = [
       '#type' => 'submit',
-      '#value' => t('Remove'),
+      '#value' => $this->t('Remove'),
       '#name' => 'ief-remove-confirm-' . $delta,
       '#limit_validation_errors' => [$form['#parents']],
       '#ajax' => [
@@ -812,7 +813,7 @@ class InlineEntityFormComplex extends InlineEntityFormBase implements ContainerF
     ];
     $form['actions']['ief_remove_cancel'] = [
       '#type' => 'submit',
-      '#value' => t('Cancel'),
+      '#value' => $this->t('Cancel'),
       '#name' => 'ief-remove-cancel-' . $delta,
       '#limit_validation_errors' => [],
       '#ajax' => [

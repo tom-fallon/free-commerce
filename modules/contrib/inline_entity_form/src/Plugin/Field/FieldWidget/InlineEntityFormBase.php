@@ -38,7 +38,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
   /**
    * The inline entity from handler.
    *
-   * @var \Drupal\inline_entity_form\InlineEntityFormHandlerInterface
+   * @var \Drupal\inline_entity_form\InlineFormInterface
    */
   protected $iefHandler;
 
@@ -85,7 +85,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
   protected function initializeIefController() {
     if (!isset($this->iefHandler)) {
       $target_type = $this->fieldDefinition->getFieldStorageDefinition()->getSetting('target_type');
-      $this->iefHandler = $this->entityManager->getHandler($target_type, 'inline entity form');
+      $this->iefHandler = $this->entityManager->getHandler($target_type, 'inline_form');
     }
   }
 
@@ -163,12 +163,12 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
     $element = [];
     $element['override_labels'] = [
       '#type' => 'checkbox',
-      '#title' => t('Override labels'),
+      '#title' => $this->t('Override labels'),
       '#default_value' => $this->getSetting('override_labels'),
     ];
     $element['label_singular'] = [
       '#type' => 'textfield',
-      '#title' => t('Singular label'),
+      '#title' => $this->t('Singular label'),
       '#default_value' => $this->getSetting('label_singular'),
       '#states' => [
         'visible' => [
@@ -178,7 +178,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
     ];
     $element['label_plural'] = array(
       '#type' => 'textfield',
-      '#title' => t('Plural label'),
+      '#title' => $this->t('Plural label'),
       '#default_value' => $this->getSetting('label_plural'),
       '#states' => array(
         'visible' => array(
@@ -196,13 +196,13 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
   public function settingsSummary() {
     $summary = [];
     if ($this->getSetting('override_labels')) {
-      $summary[] = t(
+      $summary[] = $this->t(
         'Overriden labels are used: %singular and %plural',
         ['%singular' => $this->getSetting('label_singular'), '%plural' => $this->getSetting('label_plural')]
       );
     }
     else {
-      $summary[] = t('Default labels are used.');
+      $summary[] = $this->t('Default labels are used.');
     }
 
     return $summary;
@@ -259,8 +259,6 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    *
    * @param $operation
    *   Operation (i.e. 'add' or 'edit').
-   * @param $target_type
-   *   Target entity type.
    * @param $language
    *   Entity langcode.
    * @param array $parents
@@ -274,7 +272,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
    * @return array
    *   IEF form element structure.
    */
-  protected function getInlineEntityForm($operation, $target_type, $language, $delta, array $parents, $bundle = NULL, EntityInterface $entity = NULL, $save_entity = FALSE) {
+  protected function getInlineEntityForm($operation, $language, $delta, array $parents, $bundle = NULL, EntityInterface $entity = NULL, $save_entity = FALSE) {
     $ief = [
       '#type' => 'inline_entity_form',
       '#op' => $operation,
@@ -283,7 +281,7 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
       // Used by Field API and controller methods to find the relevant
       // values in $form_state.
       '#parents' => $parents,
-      '#entity_type' => $target_type,
+      '#entity_type' => $this->getFieldSetting('target_type'),
       // Pass the langcode of the parent entity,
       '#language' => $language,
       // Labels could be overridden in field widget settings. We won't have
@@ -395,4 +393,39 @@ abstract class InlineEntityFormBase extends WidgetBase implements ContainerFacto
       $form_state->set(['inline_entity_form', $ief_id, 'entities'], $entities);
     }
   }
+
+  /**
+   * Checks if current submit is relevant for IEF.
+   *
+   * We need to save all referenced entities and extract their IDs into field
+   * values.
+   *
+   * @param array $form
+   *   Complete form.
+   * @param FormStateInterface $form_state
+   *   Form state.
+   */
+  protected function isSubmitRelevant(array $form, FormStateInterface $form_state) {
+    $field_name = $this->fieldDefinition->getName();
+    $parents = array_merge($form['#parents'], [$field_name, 'form']);
+
+    $trigger = $form_state->getTriggeringElement();
+    if (isset($trigger['#limit_validation_errors']) && $trigger['#limit_validation_errors'] !== FALSE) {
+      $imploded_parents = implode('', array_slice($parents, 0, -1));
+      $relevant_sections = array_filter(
+        $trigger['#limit_validation_errors'],
+        function ($item) use ($imploded_parents) {
+          $imploded_item = implode('', $item);
+          return strpos($imploded_item, $imploded_parents) !== 0;
+        }
+      );
+
+      if (empty($relevant_sections)) {
+        return FALSE;
+      }
+    }
+
+    return TRUE;
+  }
+
 }

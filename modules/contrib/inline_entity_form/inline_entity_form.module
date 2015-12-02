@@ -9,11 +9,9 @@
  */
 
 use Drupal\Component\Utility\NestedArray;
-use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
-use Drupal\inline_entity_form\InlineEntityForm\EntityInlineEntityFormHandler;
+use Drupal\inline_entity_form\Form\EntityInlineForm;
 
 /**
  * Implements hook_entity_info_alter().
@@ -22,13 +20,13 @@ use Drupal\inline_entity_form\InlineEntityForm\EntityInlineEntityFormHandler;
  */
 function inline_entity_form_entity_type_build(array &$entity_types) {
   /** @var \Drupal\Core\Entity\EntityTypeInterface[] $entity_types */
-  if (isset($entity_types['node']) && !$entity_types['node']->getHandlerClass('inline entity form')) {
-    $entity_types['node']->setHandlerClass('inline entity form', '\Drupal\inline_entity_form\InlineEntityForm\NodeInlineEntityFormHandler');
+  if (isset($entity_types['node']) && !$entity_types['node']->getHandlerClass('inline_form')) {
+    $entity_types['node']->setHandlerClass('inline_form', '\Drupal\inline_entity_form\Form\NodeInlineForm');
   }
 
   foreach ($entity_types as &$entity_type) {
-    if (!$entity_type->getHandlerClass('inline entity form')) {
-      $entity_type->setHandlerClass('inline entity form', '\Drupal\inline_entity_form\InlineEntityForm\EntityInlineEntityFormHandler');
+    if (!$entity_type->getHandlerClass('inline_form')) {
+      $entity_type->setHandlerClass('inline_form', '\Drupal\inline_entity_form\Form\EntityInlineForm');
     }
   }
 }
@@ -64,11 +62,10 @@ function inline_entity_form_reference_form($handler, $reference_form, &$form_sta
 
   $reference_form['#title'] = t('Add existing @type_singular', array('@type_singular' => $labels['singular']));
   $reference_form['entity_id'] = array(
-    '#type' => 'textfield',
+    '#type' => 'entity_autocomplete',
     '#title' => t('@label', array('@label' => ucwords($labels['singular']))),
-    '#autocomplete_route_name' => 'inline_entity_form.autocomplete',
-    '#autocomplete_route_parameters' => ['entity_type_id' => $instance->getTargetEntityTypeId(), 'field_name' => $instance->getName(), 'bundle' => $instance->getTargetBundle()],
-    '#element_validate' => array('_inline_entity_form_autocomplete_validate'),
+    '#target_type' => $instance->getSetting('target_type'),
+    '#selection_settings' => ['target_bundles' => $instance->getSetting('handler_settings')['target_bundles']],
     '#required' => TRUE,
     '#maxlength' => 255,
   );
@@ -114,20 +111,6 @@ function inline_entity_form_reference_form($handler, $reference_form, &$form_sta
 }
 
 /**
- * #element_validate callback for the IEF autocomplete field.
- */
-function _inline_entity_form_autocomplete_validate($element, FormStateInterface $form_state, $form) {
-  $value = '';
-  if (!empty($element['#value'])) {
-    // Take "label (entity id)', match the id from parenthesis.
-    if (preg_match("/.+\((\d+)\)/", $element['#value'], $matches)) {
-      $value = $matches[1];
-    }
-  }
-  $form_state->setValueForElement($element, $value);
-}
-
-/**
  * Validates the form for adding existing entities.
  *
  * @param $reference_form
@@ -142,8 +125,8 @@ function inline_entity_form_reference_form_validate(&$reference_form, FormStateI
 
   $instance = $form_state->get(['inline_entity_form', $ief_id, 'instance']);
   $target_type = $instance->getFieldStorageDefinition()->getSetting('target_type');
-  /** @var \Drupal\inline_entity_form\InlineEntityFormHandlerInterface $handler */
-  $handler = \Drupal::entityManager()->getHandler($target_type, 'inline entity form');
+  /** @var \Drupal\inline_entity_form\InlineFormInterface $handler */
+  $handler = \Drupal::entityManager()->getHandler($target_type, 'inline_form');
   $labels = $handler->labels();
 
   $form_values = NestedArray::getValue($form_state->getValues(), $reference_form['#parents']);
@@ -252,7 +235,7 @@ function inline_entity_form_close_form($form, FormStateInterface $form_state) {
  */
 function inline_entity_form_cleanup_form_state($form, FormStateInterface $form_state) {
   $element = inline_entity_form_get_element($form, $form_state);
-  EntityInlineEntityFormHandler::submitCleanFormState($element['form']['inline_entity_form'], $form_state);
+  EntityInlineForm::submitCleanFormState($element['form']['inline_entity_form'], $form_state);
 }
 
 /**
@@ -329,7 +312,7 @@ function inline_entity_form_cleanup_row_form_state($form, FormStateInterface $fo
   $element = inline_entity_form_get_element($form, $form_state);
   $delta = $form_state->getTriggeringElement()['#ief_row_delta'];
   $entity_form = $element['entities'][$delta]['form']['inline_entity_form'];
-  EntityInlineEntityFormHandler::submitCleanFormState($entity_form, $form_state);
+  EntityInlineForm::submitCleanFormState($entity_form, $form_state);
 }
 
 /**
@@ -415,7 +398,10 @@ function theme_inline_entity_form_entity_table($variables) {
     // Add fields that represent the entity.
     foreach ($fields as $field_name => $field) {
       $data = '';
-      if ($field['type'] == 'field' && $entity->hasField($field_name)) {
+      if ($field['type'] == 'label') {
+        $data = $entity->label();
+      }
+      elseif ($field['type'] == 'field' && $entity->hasField($field_name)) {
         $display_options = array('label' => 'hidden');
         if (isset($field['display_options'])) {
           $display_options += $field['display_options'];

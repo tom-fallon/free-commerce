@@ -1,10 +1,10 @@
 <?php
 
 /**
- * Contains \Drupal\inline_entity_form\InlineEntityForm\EntityInlineEntityFormHandler.
+ * Contains \Drupal\inline_entity_form\Form\EntityInlineForm.
  */
 
-namespace Drupal\inline_entity_form\InlineEntityForm;
+namespace Drupal\inline_entity_form\Form;
 
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityFormInterface;
@@ -14,14 +14,14 @@ use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Field\WidgetBase;
 use Drupal\Core\Form\FormState;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\inline_entity_form\InlineEntityFormHandlerInterface;
+use Drupal\inline_entity_form\InlineFormInterface;
 use Drupal\Core\Entity\EntityManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Generic entity inline form handler.
  */
-class EntityInlineEntityFormHandler implements InlineEntityFormHandlerInterface {
+class EntityInlineForm implements InlineFormInterface {
 
   /**
    * Entity manager service.
@@ -99,32 +99,30 @@ class EntityInlineEntityFormHandler implements InlineEntityFormHandlerInterface 
    */
   public function tableFields($bundles) {
     $info = $this->entityManager->getDefinition($this->entityTypeId());
-    $metadata = array();
+    $definitions = $this->entityManager->getBaseFieldDefinitions($this->entityTypeId());
+    $label_key = $info->getKey('label');
+    $label_field_label = t('Label');
+    if ($label_key && isset($definitions[$label_key])) {
+      $label_field_label = $definitions[$label_key]->getLabel();
+    }
+    $bundle_key = $info->getKey('bundle');
+    $bundle_field_label = t('Type');
+    if ($bundle_key && isset($definitions[$bundle_key])) {
+      $bundle_field_label = $definitions[$bundle_key]->getLabel();
+    }
 
-    $fields = array();
-    if ($info->hasKey('label')) {
-      $label_key = $info->getKey('label');
-      $fields[$label_key] = array(
-        'type' => 'field',
-        'label' => $metadata ? $metadata[$label_key]['label'] : t('Label'),
-        'weight' => 1,
-      );
-    }
-    else {
-      $id_key = $info->getKey('id');
-      $fields[$id_key] = array(
-        'type' => 'field',
-        'label' => $metadata ? $metadata[$id_key]['label'] : t('ID'),
-        'weight' => 1,
-      );
-    }
+    $fields = [];
+    $fields['label'] = [
+      'type' => 'label',
+      'label' => $label_field_label,
+      'weight' => 1,
+    ];
     if (count($bundles) > 1) {
-      $bundle_key = $info->getKey('bundle');
-      $fields[$bundle_key] = array(
+      $fields[$bundle_key] = [
         'type' => 'field',
-        'label' => $metadata ? $metadata[$bundle_key]['label'] : t('Type'),
+        'label' => $bundle_field_label,
         'weight' => 2,
-      );
+      ];
     }
 
     return $fields;
@@ -144,7 +142,7 @@ class EntityInlineEntityFormHandler implements InlineEntityFormHandlerInterface 
     $operation = 'default';
     $controller = $this->entityManager->getFormObject($entity_form['#entity']->getEntityTypeId(), $operation);
     $controller->setEntity($entity_form['#entity']);
-    $child_form_state = $this->buildChildFormState($controller, $form_state, $entity_form['#entity'], $operation);
+    $child_form_state = $this->buildChildFormState($controller, $form_state, $entity_form['#entity'], $operation, $entity_form['#parents']);
 
     $entity_form = $controller->buildForm($entity_form, $child_form_state);
 
@@ -193,7 +191,7 @@ class EntityInlineEntityFormHandler implements InlineEntityFormHandlerInterface 
 
       $controller = \Drupal::entityManager()
         ->getFormObject($entity->getEntityTypeId(), $operation);
-      $child_form_state = static::buildChildFormState($controller, $form_state, $entity, $operation);
+      $child_form_state = static::buildChildFormState($controller, $form_state, $entity, $operation, $entity_form['#parents']);
       $entity_form['#entity'] = $controller->validateForm($entity_form, $child_form_state);
 
       // TODO - this is field-only part of the code. Figure out how to refactor.
@@ -229,32 +227,33 @@ class EntityInlineEntityFormHandler implements InlineEntityFormHandlerInterface 
     /** @var \Drupal\Core\Entity\EntityInterface $entity */
     $entity = $entity_form['#entity'];
     $operation = 'default';
-
     $controller = \Drupal::entityManager()->getFormObject($entity->getEntityTypeId(), $operation);
     $controller->setEntity($entity);
-    $child_form_state = static::buildChildFormState($controller, $form_state, $entity, $operation);
 
+    $child_form_state = static::buildChildFormState($controller, $form_state, $entity, $operation, $entity_form['#parents']);
     $child_form = $entity_form;
     $child_form['#ief_parents'] = $entity_form['#parents'];
-
     $controller->submitForm($child_form, $child_form_state);
-    if ($controller->getEntity() instanceof ContentEntityInterface) {
-      // Entity was validated in entityFormValidate(). This will prevent validation
-      // exception from being thrown.
-      $controller->getEntity()->setValidationRequired(FALSE);
+    $entity = $entity_form['#entity'] = $controller->getEntity();
+
+    // Invoke all specified builders for copying form values to entity
+    // properties.
+    if (isset($entity_form['#entity_builders'])) {
+      foreach ($entity_form['#entity_builders'] as $function) {
+        call_user_func_array($function, [$entity->getEntityTypeId(), $entity, &$child_form, &$child_form_state]);
+      }
     }
-
-    $entity_form['#entity'] = $controller->getEntity();
-
+    if ($entity instanceof ContentEntityInterface) {
+      // The entity was already validated in entityFormValidate().
+      $entity->setValidationRequired(FALSE);
+    }
     if ($entity_form['#save_entity']) {
-      $entity_form['#entity']->save();
+      $entity->save();
     }
-
     // TODO - this is field-only part of the code. Figure out how to refactor.
     if ($child_form_state->has(['inline_entity_form', $entity_form['#ief_id']])) {
-      $form_state->set(['inline_entity_form', $entity_form['#ief_id'], 'entity'], $entity_form['#entity']);
+      $form_state->set(['inline_entity_form', $entity_form['#ief_id'], 'entity'], $entity);
     }
-
   }
 
   /**
@@ -275,11 +274,13 @@ class EntityInlineEntityFormHandler implements InlineEntityFormHandlerInterface 
    *   Entity object.
    * @param string $operation
    *   Operation that is to be performed in inline form.
+   * @param array $parents
+   *   Entity form #parents.
    *
    * @return \Drupal\Core\Form\FormStateInterface
    *   Child form state object.
    */
-  public static function buildChildFormState(EntityFormInterface $controller, FormStateInterface $form_state, EntityInterface $entity, $operation) {
+  public static function buildChildFormState(EntityFormInterface $controller, FormStateInterface $form_state, EntityInterface $entity, $operation, $parents) {
     $child_form_state = new FormState();
 
     $child_form_state->addBuildInfo('callback_object', $controller);
@@ -288,8 +289,18 @@ class EntityInlineEntityFormHandler implements InlineEntityFormHandlerInterface 
     $child_form_state->addBuildInfo('args', array());
 
     // Copy values to child form.
+    $child_form_state->setCompleteForm($form_state->getCompleteForm());
     $child_form_state->setUserInput($form_state->getUserInput());
-    $child_form_state->setValues($form_state->getValues());
+
+    // Filter out all submitted values that are not directly relevant for this
+    // IEF. Otherwise they might mess things up.
+    $form_state_values = $form_state->getValues();
+    foreach (array_keys($form_state_values) as $key) {
+      if ($key !== $parents[0]) {
+        unset($form_state_values[$key]);
+      }
+    }
+    $child_form_state->setValues($form_state_values);
     $child_form_state->setStorage($form_state->getStorage());
     $child_form_state->set('form_display', entity_get_form_display($entity->getEntityTypeId(), $entity->bundle(), $operation));
 

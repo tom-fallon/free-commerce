@@ -8,8 +8,8 @@ dependencies:
   enforced:
     module:
       - inline_entity_form_test
-id: node.multi
-field_name: multi
+id: node.all_bundles
+field_name: all_bundles
 entity_type: node
 type: entity_reference
 settings:
